@@ -1,0 +1,42 @@
+version: '3'
+services:
+  full-stack-course-backend:
+    build: .
+    container_name: developer-course-backend
+    ports:
+      - '4000:4000'
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - nest-network
+    volumes:
+      - .:/usr/src/app # Mount the source code
+
+  mysql:
+    image: mysql:latest
+    ports:
+      - '3306:3306'
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - nest-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Mount the initialization script
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  nest-network:
+    external: true
+
+volumes:
+  mysql-data:
